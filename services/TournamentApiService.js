@@ -8,33 +8,48 @@ class TournamentApiService {
 
     if (process.platform === 'win32') {
       // Windows: usa Chromium que Puppeteer descarga por defecto
-      launchOptions.executablePath = undefined; // opcional, Puppeteer lo maneja solo
+      launchOptions.executablePath = undefined;
     } else if (process.platform === 'linux') {
-      // Linux server: usar Chromium del sistema para evitar problemas
+      // Linux server: usar Chromium del sistema y optimizado para VPS de 1GB
       launchOptions.executablePath = '/usr/bin/chromium-browser';
-        launchOptions.args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-gpu',
-    '--single-process'
-  ];
+      launchOptions.args = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process'
+      ];
     }
 
-    const browser = await puppeteer.launch(launchOptions);
+    let browser;
+    try {
+      browser = await puppeteer.launch(launchOptions);
+      const page = await browser.newPage();
 
-    const page = await browser.newPage();
+      // Timeout de 30s máximo
+      await page.goto(
+        'https://www.sofascore.com/api/v1/search/suggestions/unique-tournaments?sport=football',
+        { waitUntil: 'networkidle2', timeout: 30000 }
+      );
 
-    await page.goto('https://www.sofascore.com/api/v1/search/suggestions/unique-tournaments?sport=football', {
-      waitUntil: 'networkidle2'
-    });
+      const content = await page.evaluate(() => document.body.innerText);
+      const jsonObject = JSON.parse(content);
 
-    const content = await page.evaluate(() => document.body.innerText);
+      return jsonObject.results || [];
 
-    await browser.close();
+    } catch (err) {
+      console.error('Error en Puppeteer:', err);
+      throw err;
 
-    const jsonObject = JSON.parse(content);
-    return jsonObject.results || [];
+    } finally {
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (err) {
+          console.error('Error cerrando Puppeteer:', err);
+        }
+      }
+    }
   }
 }
 
