@@ -11,7 +11,7 @@ class MatchApiService {
   async getMatches(date) {
     try {
       const url = `${this.matchesBaseUrl}/${date}`;
-      const jsonObject = await this.puppeteerService(url);
+      const jsonObject = await this.puppeteerService.fetchJson(url);
       return jsonObject.events || [];
     } catch (e) {
       throw new Error(`Error fetching matches: ${e.message}`);
@@ -21,7 +21,7 @@ class MatchApiService {
   async getMatch(matchId) {
     try {
       const url = `${this.matchBaseUrl}/${matchId}`;
-      const jsonObject = await this.puppeteerService(url);
+      const jsonObject = await this.puppeteerService.fetchJson(url);
       return jsonObject.event;
     } catch (e) {
       throw new Error(`Error fetching match: ${e.message}`);
