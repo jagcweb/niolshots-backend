@@ -20,7 +20,7 @@ class StatsApiService {
     launchOptions.args = ['--no-sandbox', '--disable-setuid-sandbox'];
   }
 
-  const browser = await puppeteer.launch({ headless: true }); = await puppeteer.launch(launchOptions);
+  const browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
 
