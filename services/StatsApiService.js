@@ -7,7 +7,21 @@ class StatsApiService {
 
   // Función genérica para abrir Puppeteer y devolver JSON
   async fetchJsonWithPuppeteer(url) {
-    const browser = await puppeteer.launch({ headless: true });
+    const puppeteer = require('puppeteer');
+
+  let launchOptions = { headless: true };
+
+  if (process.platform === 'win32') {
+    // Windows: usa Chromium que Puppeteer descarga por defecto
+    launchOptions.executablePath = undefined; // opcional, Puppeteer lo maneja solo
+  } else if (process.platform === 'linux') {
+    // Linux server: usar Chromium del sistema para evitar problemas
+    launchOptions.executablePath = '/usr/bin/chromium-browser';
+    launchOptions.args = ['--no-sandbox', '--disable-setuid-sandbox'];
+  }
+
+  const browser = await puppeteer.launch({ headless: true }); = await puppeteer.launch(launchOptions);
+
     const page = await browser.newPage();
 
     await page.goto(url, { waitUntil: 'networkidle2' });
