@@ -4,15 +4,15 @@ const MatchApiService = require('../services/MatchApiService');
 const matchApi = new MatchApiService();
 
 // GET /api/matches?date=YYYY-MM-DD
-router.get('/', async (req, res) => {
+router.get('/:date', async (req, res) => {
   try {
-    const date = req.query.date;
-    if (!date) return res.status(400).json({ error: 'Missing date parameter' });
+    const date = req.params.date;
     const matches = await matchApi.getMatches(date);
-    res.json(matches);
+    res.json({ events: matches });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;

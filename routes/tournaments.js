@@ -7,10 +7,11 @@ const tournamentApi = new TournamentApiService();
 router.get('/', async (req, res) => {
   try {
     const tournaments = await tournamentApi.getAllTournaments();
-    res.json(tournaments);
+    res.json({ results: tournaments }); // <--- envía como objeto con results
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;
