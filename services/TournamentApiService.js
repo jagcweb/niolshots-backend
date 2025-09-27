@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 class TournamentApiService {
   async getAllTournaments() {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
     await page.goto('https://www.sofascore.com/api/v1/search/suggestions/unique-tournaments?sport=football', {
