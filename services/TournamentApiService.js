@@ -12,7 +12,13 @@ class TournamentApiService {
     } else if (process.platform === 'linux') {
       // Linux server: usar Chromium del sistema para evitar problemas
       launchOptions.executablePath = '/usr/bin/chromium-browser';
-      launchOptions.args = ['--no-sandbox', '--disable-setuid-sandbox'];
+        launchOptions.args = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--single-process'
+  ];
     }
 
     const browser = await puppeteer.launch(launchOptions);
