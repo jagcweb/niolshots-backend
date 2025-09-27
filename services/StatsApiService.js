@@ -1,54 +1,9 @@
-const puppeteer = require('puppeteer');
+const { getInstance } = require('./PuppeteerBatchService');
 
 class StatsApiService {
   constructor() {
     this.baseUrl = "https://www.sofascore.com/api/v1/event";
-  }
-
-  async fetchJsonWithPuppeteer(url) {
-    const puppeteer = require('puppeteer');
-
-    let launchOptions = { headless: true };
-
-    if (process.platform === 'win32') {
-      launchOptions.executablePath = undefined;
-    } else if (process.platform === 'linux') {
-      launchOptions.executablePath = '/usr/bin/chromium-browser';
-      launchOptions.args = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process'
-      ];
-    }
-
-    let browser;
-    try {
-      browser = await puppeteer.launch(launchOptions);
-      const page = await browser.newPage();
-
-      // Timeout de 30s máximo para no colgar el VPS
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-
-      // Extraemos el texto de body y parseamos JSON
-      const content = await page.evaluate(() => document.body.innerText);
-
-      return JSON.parse(content);
-
-    } catch (err) {
-      console.error('Error en Puppeteer:', err);
-      throw err;
-
-    } finally {
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (err) {
-          console.error('Error cerrando Puppeteer:', err);
-        }
-      }
-    }
+    this.puppeteerService = getInstance();
   }
 
 
@@ -58,7 +13,7 @@ class StatsApiService {
     const shotsUrl = `${this.baseUrl}/${matchId}/shotmap`;
 
     try {
-      const jsonObject = await this.fetchJsonWithPuppeteer(shotsUrl);
+      const jsonObject = await this.puppeteerService(shotsUrl);
       return jsonObject.shotmap || [];
     } catch (e) {
       throw new Error(`Error fetching shots: ${e.message}`);
@@ -70,7 +25,7 @@ class StatsApiService {
     if (!matchId) return {};
     const url = `${this.baseUrl}/${matchId}/lineups`;
     try {
-      const jsonObject = await this.fetchJsonWithPuppeteer(url);
+      const jsonObject = await this.puppeteerService(url);
       return jsonObject || {};
     } catch (e) {
       throw new Error(`Error fetching player stats: ${e.message}`);
@@ -82,7 +37,7 @@ class StatsApiService {
     if (!matchId) return [];
     const url = `${this.baseUrl}/${matchId}/incidents`;
     try {
-      const jsonObject = await this.fetchJsonWithPuppeteer(url);
+      const jsonObject = await this.puppeteerService(url);
       return jsonObject.incidents || [];
     } catch (e) {
       throw new Error(`Error fetching match incidents: ${e.message}`);
@@ -95,7 +50,7 @@ async getMatchInfo(matchId) {
 
   const url = `${this.baseUrl}/${matchId}`;
   try {
-    const response = await this.fetchJsonWithPuppeteer(url);
+    const response = await this.puppeteerService(url);
 
     // Extraemos "event" primero
     const eventDetails = response.event || {};

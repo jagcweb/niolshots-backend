@@ -1,54 +1,21 @@
-const puppeteer = require('puppeteer');
+// ELIMINAR: const puppeteer = require('puppeteer'); - Ya no es necesario
+const { getInstance } = require('./PuppeteerBatchService'); // CAMBIO: Importar el servicio centralizado
 
 class TournamentApiService {
+  constructor() {
+    this.puppeteerService = getInstance(); // CAMBIO: Usar la instancia singleton
+  }
+
   async getAllTournaments() {
-    const puppeteer = require('puppeteer');
-
-    let launchOptions = { headless: true };
-
-    if (process.platform === 'win32') {
-      // Windows: usa Chromium que Puppeteer descarga por defecto
-      launchOptions.executablePath = undefined;
-    } else if (process.platform === 'linux') {
-      // Linux server: usar Chromium del sistema y optimizado para VPS de 1GB
-      launchOptions.executablePath = '/usr/bin/chromium-browser';
-      launchOptions.args = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process'
-      ];
-    }
-
-    let browser;
+    const url = 'https://www.sofascore.com/api/v1/search/suggestions/unique-tournaments?sport=football';
+    
     try {
-      browser = await puppeteer.launch(launchOptions);
-      const page = await browser.newPage();
-
-      // Timeout de 30s máximo
-      await page.goto(
-        'https://www.sofascore.com/api/v1/search/suggestions/unique-tournaments?sport=football',
-        { waitUntil: 'networkidle2', timeout: 30000 }
-      );
-
-      const content = await page.evaluate(() => document.body.innerText);
-      const jsonObject = JSON.parse(content);
-
+      // CAMBIO: Usar el servicio centralizado - solo 2 líneas en lugar de 45
+      const jsonObject = await this.puppeteerService.fetchJson(url);
       return jsonObject.results || [];
-
     } catch (err) {
-      console.error('Error en Puppeteer:', err);
+      console.error('Error fetching tournaments:', err);
       throw err;
-
-    } finally {
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (err) {
-          console.error('Error cerrando Puppeteer:', err);
-        }
-      }
     }
   }
 }
