@@ -6,45 +6,51 @@ class MatchApiService {
     this.matchBaseUrl = "https://www.sofascore.com/api/v1/event";
     this.cloudScraperService = getInstance();
     
-    // Lista de IDs o nombres de torneos principales
-    this.mainTournaments = new Set([
+    // Mapa de torneos principales por país
+    this.mainTournaments = {
       // España
-      'laliga', 'primera-division', 'laliga-ea-sports',
-      'segunda-division', 'laliga-hypermotion', 'laliga-smartbank',
-      'copa-del-rey', 'supercopa-de-espana',
+      'ES': ['laliga', 'primera-division', 'laliga-ea-sports', 'segunda-division', 'laliga-hypermotion', 'copa-del-rey', 'supercopa-de-espana'],
+      'ESP': ['laliga', 'primera-division', 'laliga-ea-sports', 'segunda-division', 'laliga-hypermotion', 'copa-del-rey', 'supercopa-de-espana'],
+      'spain': ['laliga', 'primera-division', 'laliga-ea-sports', 'segunda-division', 'laliga-hypermotion', 'copa-del-rey', 'supercopa-de-espana'],
       
       // Portugal
-      'liga-portugal-betclic', 'primeira-liga',
-      'taca-de-portugal', 'supercopa-candido-de-oliveira',
+      'PT': ['liga-portugal-betclic', 'primeira-liga', 'taca-de-portugal', 'supercopa-candido-de-oliveira'],
+      'POR': ['liga-portugal-betclic', 'primeira-liga', 'taca-de-portugal', 'supercopa-candido-de-oliveira'],
+      'portugal': ['liga-portugal-betclic', 'primeira-liga', 'taca-de-portugal', 'supercopa-candido-de-oliveira'],
       
       // Turquía
-      'super-lig', 'turkiye-kupasi', 'super-kupa',
+      'TR': ['super-lig', 'turkiye-kupasi', 'super-kupa'],
+      'TUR': ['super-lig', 'turkiye-kupasi', 'super-kupa'],
+      'turkey': ['super-lig', 'turkiye-kupasi', 'super-kupa'],
       
       // Inglaterra
-      'premier-league',
-      'championship', 'efl-championship',
-      'fa-cup', 'efl-cup', 'carabao-cup', 'community-shield',
+      'EN': ['premier-league', 'championship', 'efl-championship', 'fa-cup', 'efl-cup', 'carabao-cup', 'community-shield'],
+      'ENG': ['premier-league', 'championship', 'efl-championship', 'fa-cup', 'efl-cup', 'carabao-cup', 'community-shield'],
+      'england': ['premier-league', 'championship', 'efl-championship', 'fa-cup', 'efl-cup', 'carabao-cup', 'community-shield'],
       
       // Italia
-      'serie-a', 'serie-b',
-      'coppa-italia', 'supercoppa-italiana',
+      'IT': ['serie-a', 'serie-b', 'coppa-italia', 'supercoppa-italiana'],
+      'ITA': ['serie-a', 'serie-b', 'coppa-italia', 'supercoppa-italiana'],
+      'italy': ['serie-a', 'serie-b', 'coppa-italia', 'supercoppa-italiana'],
       
       // Alemania
-      'bundesliga', '2-bundesliga',
-      'dfb-pokal', 'dfl-supercup',
+      'DE': ['bundesliga', '2-bundesliga', 'dfb-pokal', 'dfl-supercup'],
+      'DEU': ['bundesliga', '2-bundesliga', 'dfb-pokal', 'dfl-supercup'],
+      'germany': ['bundesliga', '2-bundesliga', 'dfb-pokal', 'dfl-supercup'],
       
       // Francia
-      'ligue-1', 'ligue-2',
-      'coupe-de-france', 'trophee-des-champions',
-      
-      // Torneos internacionales de clubes
+      'FR': ['ligue-1', 'ligue-2', 'coupe-de-france', 'trophee-des-champions'],
+      'FRA': ['ligue-1', 'ligue-2', 'coupe-de-france', 'trophee-des-champions'],
+      'france': ['ligue-1', 'ligue-2', 'coupe-de-france', 'trophee-des-champions'],
+    };
+    
+    // Torneos internacionales (sin país específico)
+    this.internationalTournaments = new Set([
       'champions-league', 'uefa-champions-league',
-      'europa-league', 'uefa-europa-league',
+      'europa-league', 'uefa-europa-league', 
       'europa-conference-league', 'uefa-europa-conference-league',
       'supercopa-de-la-uefa', 'uefa-super-cup',
       'copa-mundial-de-clubes', 'fifa-club-world-cup',
-      
-      // Torneos internacionales de selecciones
       'copa-mundial', 'fifa-world-cup', 'world-cup',
       'copa-mundial-femenina', 'fifa-womens-world-cup',
       'euro', 'uefa-euro', 'european-championship',
@@ -68,38 +74,48 @@ class MatchApiService {
   isMainTournament(tournament) {
     if (!tournament) return false;
     
-    const tournamentName = tournament.name?.toLowerCase() || '';
     const tournamentSlug = tournament.slug?.toLowerCase() || '';
     const tournamentUniqueSlug = tournament.uniqueTournament?.slug?.toLowerCase() || '';
+    const country = tournament.category?.country;
     
-    // Verificar por slug del torneo único (más específico)
-    if (tournamentUniqueSlug && this.mainTournaments.has(tournamentUniqueSlug)) {
+    // Primero verificar torneos internacionales (sin país específico)
+    if (this.internationalTournaments.has(tournamentSlug) || 
+        this.internationalTournaments.has(tournamentUniqueSlug)) {
       return true;
     }
     
-    // Verificar por slug del torneo
-    if (tournamentSlug && this.mainTournaments.has(tournamentSlug)) {
-      return true;
+    // Si no hay información del país, no es un torneo que nos interese
+    if (!country) return false;
+    
+    // Obtener identificadores del país
+    const alpha2 = country.alpha2?.toLowerCase();
+    const alpha3 = country.alpha3?.toLowerCase(); 
+    const countryName = country.name?.toLowerCase();
+    const countrySlug = country.slug?.toLowerCase();
+    
+    // Buscar el país en nuestro mapa de torneos principales
+    const countryKeys = [alpha2, alpha3, countryName, countrySlug].filter(Boolean);
+    
+    for (const countryKey of countryKeys) {
+      const allowedTournaments = this.mainTournaments[countryKey];
+      if (allowedTournaments) {
+        // Verificar si el torneo está en la lista permitida para este país
+        if (allowedTournaments.includes(tournamentSlug) || 
+            allowedTournaments.includes(tournamentUniqueSlug)) {
+          return true;
+        }
+        
+        // Verificación adicional por coincidencia parcial para mayor flexibilidad
+        const tournamentName = tournament.name?.toLowerCase() || '';
+        return allowedTournaments.some(allowedTournament => {
+          return tournamentName.includes(allowedTournament.replace(/-/g, ' ')) ||
+                 tournamentSlug.includes(allowedTournament) ||
+                 tournamentUniqueSlug.includes(allowedTournament);
+        });
+      }
     }
     
-    // Verificar por nombre (coincidencia parcial para mayor flexibilidad)
-    const mainTournamentNames = [
-      'laliga', 'primera division', 'segunda division', 'copa del rey', 'supercopa',
-      'liga portugal', 'primeira liga', 'taça de portugal',
-      'süper lig', 'super lig', 'türkiye kupası',
-      'premier league', 'championship', 'fa cup', 'efl cup', 'carabao',
-      'serie a', 'serie b', 'coppa italia', 'supercoppa',
-      'bundesliga', 'dfb-pokal', 'dfl-supercup',
-      'ligue 1', 'ligue 2', 'coupe de france', 'trophée des champions',
-      'champions league', 'europa league', 'conference league',
-      'world cup', 'copa mundial', 'euro', 'copa america', 'nations league',
-      'copa oro', 'afcon', 'asian cup', 'olympics'
-    ];
-    
-    return mainTournamentNames.some(mainName => 
-      tournamentName.includes(mainName) || 
-      tournamentSlug.includes(mainName.replace(/\s+/g, '-'))
-    );
+    return false;
   }
 
   async getMatches(date, filterMainTournaments = true) {
