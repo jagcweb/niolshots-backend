@@ -3,7 +3,7 @@ const { getInstance } = require('./CloudscraperBatchService'); // CAMBIO: Import
 
 class TournamentApiService {
   constructor() {
-    this.CloudscraperService = getInstance(); // CAMBIO: Usar la instancia singleton
+    this.cloudScraperService = getInstance(); // CAMBIO: Usar la instancia singleton
   }
 
   async getAllTournaments() {
@@ -11,7 +11,7 @@ class TournamentApiService {
     
     try {
       // CAMBIO: Usar el servicio centralizado - solo 2 líneas en lugar de 45
-      const jsonObject = await this.CloudscraperService.fetchJson(url);
+      const jsonObject = await this.cloudScraperService.fetchJson(url);
       return jsonObject.results || [];
     } catch (err) {
       console.error('Error fetching tournaments:', err);

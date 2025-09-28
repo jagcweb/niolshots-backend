@@ -3,7 +3,7 @@ const { getInstance } = require('./CloudscraperBatchService');
 class StatsApiService {
   constructor() {
     this.baseUrl = "https://www.sofascore.com/api/v1/event";
-    this.CloudscraperService = getInstance();
+    this.cloudScraperService = getInstance();
   }
 
 
@@ -13,7 +13,7 @@ class StatsApiService {
     const shotsUrl = `${this.baseUrl}/${matchId}/shotmap`;
 
     try {
-      const jsonObject = await this.CloudscraperService.fetchJson(shotsUrl);
+      const jsonObject = await this.cloudScraperService.fetchJson(shotsUrl);
       return jsonObject.shotmap || [];
     } catch (e) {
       throw new Error(`Error fetching shots: ${e.message}`);
@@ -25,7 +25,7 @@ class StatsApiService {
     if (!matchId) return {};
     const url = `${this.baseUrl}/${matchId}/lineups`;
     try {
-      const jsonObject = await this.CloudscraperService.fetchJson(url);
+      const jsonObject = await this.cloudScraperService.fetchJson(url);
       return jsonObject || {};
     } catch (e) {
       throw new Error(`Error fetching player stats: ${e.message}`);
@@ -37,7 +37,7 @@ class StatsApiService {
     if (!matchId) return [];
     const url = `${this.baseUrl}/${matchId}/incidents`;
     try {
-      const jsonObject = await this.CloudscraperService.fetchJson(url);
+      const jsonObject = await this.cloudScraperService.fetchJson(url);
       return jsonObject.incidents || [];
     } catch (e) {
       throw new Error(`Error fetching match incidents: ${e.message}`);
@@ -50,7 +50,7 @@ async getMatchInfo(matchId) {
 
   const url = `${this.baseUrl}/${matchId}`;
   try {
-    const response = await this.CloudscraperService.fetchJson(url);
+    const response = await this.cloudScraperService.fetchJson(url);
 
     // Extraemos "event" primero
     const eventDetails = response.event || {};
