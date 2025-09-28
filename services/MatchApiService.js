@@ -1,4 +1,4 @@
-const { getInstance } = require('./CloudscraperBatchService.');
+const { getInstance } = require('./CloudscraperBatchService');
 
 
 class MatchApiService {

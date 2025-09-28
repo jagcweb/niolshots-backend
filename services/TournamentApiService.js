@@ -1,5 +1,5 @@
 // ELIMINAR: const puppeteer = require('puppeteer'); - Ya no es necesario
-const { getInstance } = require('./CloudscraperBatchService.'); // CAMBIO: Importar el servicio centralizado
+const { getInstance } = require('./CloudscraperBatchService'); // CAMBIO: Importar el servicio centralizado
 
 class TournamentApiService {
   constructor() {
