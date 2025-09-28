@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
+const cloudscraper = require('cloudscraper');
 
 // GET /api/team-image/:teamId
 router.get('/:teamId', async (req, res) => {
@@ -8,14 +8,20 @@ router.get('/:teamId', async (req, res) => {
   const url = `https://img.sofascore.com/api/v1/team/${teamId}/image`;
 
   try {
-    // Request con responseType 'stream' para pasar la imagen directamente
-    const response = await axios.get(url, { responseType: 'stream' });
+    const imageBuffer = await cloudscraper.get({ 
+      uri: url,
+      encoding: null, // importante para recibir buffer binario
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+                      '(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Referer': 'https://www.sofascore.com/'
+      }
+    });
 
-    // Copiamos los headers de contenido (tipo de imagen)
-    res.setHeader('Content-Type', response.headers['content-type']);
+    // Detectar tipo de imagen por los primeros bytes si quieres, o forzar png
+    res.setHeader('Content-Type', 'image/png');
+    res.send(imageBuffer);
 
-    // Pipe del stream directamente a la respuesta
-    response.data.pipe(res);
   } catch (error) {
     console.error('Error fetching team image:', error.message);
     res.status(500).send('Error fetching team image');
