@@ -1,4 +1,4 @@
-const { getInstance } = require('./PuppeteerBatchService');
+const { getInstance } = require('./CloudscraperBatchService.');
 
 class StatsApiService {
   constructor() {
